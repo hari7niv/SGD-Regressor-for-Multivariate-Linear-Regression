@@ -8,68 +8,86 @@ To write a program to predict the price of the house and number of occupants in 
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. Import required libraries for model training, data manipulation, and scaling.
-2. Separate features (X) and target variables (y) for price and occupants.
-3. Split data into training and testing sets for both targets.
-4. Standardize features using StandardScaler for better performance.
+1. Import required libraries: NumPy, datasets, model classes, preprocessing tools, and evaluation metrics from sklearn.
 
+2. Load the California Housing dataset using fetch_california_housing().
+
+3. Select the first 3 features as input (features) and combine the target and the 7th feature as output (targets).
+
+4. Split the features and targets into training and testing sets using train_test_split() with test_size=0.2 and random_state=42.
+
+5. Initialize StandardScaler for both input (scaler_input) and output (scaler_output) data.
+
+6. Apply scaling:
+
+     i.Fit and transform X_train using scaler_input, and transform X_test.
+
+     ii.Fit and transform y_train using scaler_output, and transform y_test.
+
+7. Create a base model using SGDRegressor(max_iter=1000, tol=1e-3).
+
+8. Wrap the base model with MultiOutputRegressor to handle multiple outputs.
+
+9. Train the model on the scaled training data using .fit().
+
+10. Predict the outputs for the scaled test data using .predict().
+
+11. Inverse transform the predicted and actual test outputs using scaler_output to return them to their original scale.
+
+12. Calculate the Mean Squared Error (MSE) between actual and predicted outputs using mean_squared_error().
+
+13. Print the MSE and display the first 5 predicted output rows for sample verification.
+ 
 
 ## Program:
 ```
 /*
 Program to implement the multivariate linear regression model for predicting the price of the house and number of occupants in the house with SGD regressor.
-Developed by: Hari Nivedhan P
-RegisterNumber: 212224220031
-  
+Developed by: HARI NIVEDHAN P
+RegisterNumber: 2122242220031
 */
-
-import pandas as pd
-data=pd.read_csv(r"C:\Users\admin\Downloads\Placement_Data.csv")
-print(data.head())
-data1=data.copy()
-data1=data1.drop(["sl_no","salary"],axis=1)
-print(data1.head())
-data1.isnull().sum()
-data1.duplicated().sum()
-from sklearn.preprocessing import LabelEncoder
-le=LabelEncoder()
-data1["gender"]=le.fit_transform(data1["gender"])
-data1["ssc_b"]=le.fit_transform(data1["ssc_b"])
-data1["hsc_b"]=le.fit_transform(data1["hsc_b"])
-data1["hsc_s"]=le.fit_transform(data1["hsc_s"])
-data1["degree_t"]=le.fit_transform(data1["degree_t"])
-data1["workex"]=le.fit_transform(data1["workex"])
-data1["specialisation"]=le.fit_transform(data1["specialisation"])
-data1["status"]=le.fit_transform(data1["status"])
-print(data1)
-x=data1.iloc[:,:-1]
-print(x)
-y=data1["status"]
-print(y)
-from sklearn.model_selection import train_test_split
-x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=0)
-from sklearn.linear_model import LogisticRegression
-lr=LogisticRegression(solver="liblinear")
-lr.fit(x_train,y_train)
-y_pred=lr.predict(x_test)
-print(y_pred)
-from sklearn.metrics import accuracy_score
-accuracy=accuracy_score(y_test,y_pred)
-print(accuracy)
-from sklearn.metrics import confusion_matrix
-confusion=confusion_matrix(y_test,y_pred)
-print(confusion) 
-from sklearn.metrics import classification_report
-classification_report1=classification_report(y_test,y_pred)
-print(classification_report1)
-lr.predict([[1,80,1,90,1,1,90,1,0,85,1,85]])
 ```
 
-## Output:
-![multivariate linear regression model for predicting the price of the house and number of occupants in the house](sam.png)
-![Screenshot 2025-05-06 083340](https://github.com/user-attachments/assets/62229881-9419-423d-ad8a-81a592b28d8a)
+    import numpy as np
+    from sklearn.datasets import fetch_california_housing
+    from sklearn.linear_model import SGDRegressor
+    from sklearn.multioutput import MultiOutputRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import mean_squared_error
+    from sklearn.preprocessing import StandardScaler
+    
+    housing_data = fetch_california_housing()
+    features = housing_data.data[:, :3]
+    targets = np.column_stack((housing_data.target, housing_data.data[:, 6]))
+    
+    X_train, X_test, y_train, y_test = train_test_split(features, targets, test_size=0.2, random_state=42)
+    
+    scaler_input = StandardScaler()
+    scaler_output = StandardScaler()
+    
+    X_train = scaler_input.fit_transform(X_train)
+    X_test = scaler_input.transform(X_test)
+    
+    y_train = scaler_output.fit_transform(y_train)
+    y_test = scaler_output.transform(y_test)
+    
+    base_model = SGDRegressor(max_iter=1000, tol=1e-3)
+    multi_output_model = MultiOutputRegressor(base_model)
+    multi_output_model.fit(X_train, y_train)
+    
+    y_pred = multi_output_model.predict(X_test)
+    
+    y_pred = scaler_output.inverse_transform(y_pred)
+    y_test = scaler_output.inverse_transform(y_test)
+    
+    mse_score = mean_squared_error(y_test, y_pred)
+    print("Mean Squared Error on test data:", mse_score)
+    
+    print("\nPredicted outputs(first five rows):\n", y_pred[:5])
 
-![Screenshot 2025-05-06 083408](https://github.com/user-attachments/assets/1adab10d-01b1-463f-b3a7-4d05fd6c7785)
-![Screenshot 2025-05-06 083426](https://github.com/user-attachments/assets/5f03e666-244a-449c-9c97-425e3c89c712)
-![Screenshot 2025-05-06 083443](https://github.com/user-attachments/assets/0cf9cc5e-e3f4-457f-842c-448decaa5d14)
-![Screenshot 2025-05-06 083459](https://github.com/user-attachments/assets/153e6fdb-4c22-46b4-ad69-df658d107af2)
+## Output:
+![Screenshot 2025-05-12 220509](https://github.com/user-attachments/assets/6730c89d-4c33-4f35-a242-997a67213fb6)
+
+
+## Result:
+Thus the program to implement the multivariate linear regression model for predicting the price of the house and number of occupants in the house with SGD regressor is written and verified using python programming.
